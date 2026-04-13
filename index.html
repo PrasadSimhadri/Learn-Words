@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordWise | Flashcard Learning</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="logo">WordWise</div>
+            <div class="header-actions">
+                <label for="excel-upload" class="upload-btn">
+                    <span>Load Excel</span>
+                    <input type="file" id="excel-upload" accept=".xlsx, .xls" hidden>
+                </label>
+                <button id="shuffle-btn" class="icon-btn" title="Shuffle Words">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                </button>
+            </div>
+        </header>
+
+        <main>
+            <div class="progress-bar">
+                <div id="progress-fill" class="progress-fill"></div>
+            </div>
+            <div class="stats">
+                <span id="counter">0 / 0</span>
+            </div>
+
+            <div class="card-container">
+                <div class="card" id="card">
+                    <div class="card-face card-front">
+                        <div class="label">Word</div>
+                        <h1 id="word-display">Loading...</h1>
+                        <p class="hint">Click to show meaning</p>
+                    </div>
+                    <div class="card-face card-back">
+                        <div class="content-group">
+                            <div class="label">Meaning</div>
+                            <p id="meaning-display"></p>
+                        </div>
+                        <div class="content-group">
+                            <div class="label">Example</div>
+                            <p id="example-display" class="example-text"></p>
+                        </div>
+                        <p class="hint">Click to show word</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="prev-btn" class="nav-btn">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                <button id="flip-btn" class="action-btn">Show Meaning</button>
+                <button id="next-btn" class="nav-btn">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+            </div>
+        </main>
+
+        <footer>
+            <p>Built with WordWise &bull; Learn faster, remember longer</p>
+        </footer>
+    </div>
+    <script type="module" src="./main.js"></script>
+</body>
+</html>
