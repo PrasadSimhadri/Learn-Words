@@ -39,6 +39,7 @@ const counter = document.getElementById('counter');
 const progressFill = document.getElementById('progress-fill');
 const shuffleBtn = document.getElementById('shuffle-btn');
 const excelUpload = document.getElementById('excel-upload');
+const resetBtn = document.getElementById('reset-btn');
 
 function shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -112,9 +113,12 @@ function handleFileUpload(event) {
         
         if (json.length > 0) {
             words = shuffle(json);
+            // Save to local storage for persistence
+            localStorage.setItem('wordwise_data', JSON.stringify(json));
+            
             currentIndex = 0;
             updateCard();
-            alert(`Loaded ${json.length} words successfully!`);
+            alert(`Loaded ${json.length} words successfully and saved to local storage!`);
         } else {
             alert("No words found in the Excel file.");
         }
@@ -133,6 +137,15 @@ shuffleBtn.addEventListener('click', () => {
     updateCard();
 });
 excelUpload.addEventListener('change', handleFileUpload);
+resetBtn.addEventListener('click', () => {
+    if (confirm("Are you sure you want to reset to default words and clear saved data?")) {
+        localStorage.removeItem('wordwise_data');
+        words = [...INITIAL_DATA];
+        words = shuffle([...words]);
+        currentIndex = 0;
+        updateCard();
+    }
+});
 
 // Keyboard shortcuts
 document.addEventListener('keydown', (e) => {
@@ -148,7 +161,19 @@ document.addEventListener('keydown', (e) => {
 
 // Initialize
 function init() {
-    words = shuffle([...INITIAL_DATA]);
+    const savedData = localStorage.getItem('wordwise_data');
+    if (savedData) {
+        try {
+            words = JSON.parse(savedData);
+            console.log('Loaded words from localStorage');
+        } catch (e) {
+            console.error('Failed to parse saved data', e);
+            words = [...INITIAL_DATA];
+        }
+    } else {
+        words = [...INITIAL_DATA];
+    }
+    words = shuffle([...words]);
     updateCard();
 }
 
