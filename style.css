@@ -123,6 +123,65 @@ main {
   color: var(--text-muted);
 }
 
+.range-controls {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-end;
+  background: var(--glass-bg);
+  padding: 1rem 1.5rem;
+  border-radius: 16px;
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(10px);
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.input-group label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.input-group input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 0.5rem;
+  color: var(--text-main);
+  width: 80px;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.input-group input:focus {
+  border-color: var(--primary-glow);
+}
+
+.range-btn {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  height: 38px;
+}
+
+.range-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--primary-glow);
+  color: var(--primary-glow);
+}
+
 .card-container {
   perspective: 1000px;
   width: var(--card-width);

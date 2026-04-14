@@ -1,29 +1,12 @@
 import * as XLSX from 'xlsx';
 
-// Initial data extracted from the user's provided vocab.xlsx
+// Initial data for welcome state
 const INITIAL_DATA = [
-    {"Word":"betray","Meaning":"to give information about somebody/something to an enemy; to make a secret known.","Example":"She betrayed all the members of the group to the secret police."},
-    {"Word":"ambigious","Meaning":"Having more than one possible meaning; unclear or open to different interpretations.","Example":"he ending of the movie was ambiguous, leaving the audience guessing."},
-    {"Word":"obscure","Meaning":"Not well known; unclear or hard to understand","Example":"The scientist studied an obscure species of insect that few people had ever heard of."},
-    {"Word":"undermine","Meaning":"to weaken or damage something gradually","Example":"The rumors began to undermine the company's reputation"},
-    {"Word":"commensurate","Meaning":"to be equal in size, amount ","Example":"his salary is commensurate with this experience and skills"},
-    {"Word":"venality","Meaning":"being open to bribe or corruption, willing to act dishonestly for money or personal gain","Example":"people lost trust in the system due with widespread venality"},
-    {"Word":"egregious","Meaning":"outstandily bad, shocking or extremely wrong in a noticeable way","Example":"the student made an egregious mistake by using phone during exam"},
-    {"Word":"upbraid","Meaning":"to scold or criticize hardly, specially for doing something wrong ","Example":"the teacher upbraided the student for cheating on the test"},
-    {"Word":"calumny","Meaning":"false statements / lies made to damage one's reputation","Example":"politician denied the accusations, calling them pure calumny"},
-    {"Word":"venerate","Meaning":"to respect or honor someone or something deeply","Example":"many people venerate great leaders for their contributions"},
-    {"Word":"disinterested","Meaning":"means impartial, unbiased, uninvested in an outcome","Example":"A disinterested party was needed to mediate the dispute"},
-    {"Word":"ameliorate","Meaning":"making something better/improve a bad situation","Example":"I ameliorated by friend's mood after a rough day"},
-    {"Word":"mitigate","Meaning":"to reduce seriousness/bad effects","Example":"conversation can mitigate misunderstanding"},
-    {"Word":"reticent","Meaning":"one who doesn’t talk much","Example":"he is very reticent in the class"},
-    {"Word":"pragmatic","Meaning":"practical and realistic","Example":"he takes very pragmatic decisions about his future"},
-    {"Word":"equivocal","Meaning":"saying something unclear/open to interpretation","Example":"his equivocal answers made him a prime suspect for the officers"},
-    {"Word":"ephemeral","Meaning":"something that’s short lived/for short time/temporary","Example":"his happiness was ephemeral"},
-    {"Word":"taciturn","Meaning":"person who's very quite and speaks very little","Example":"he remained taciturn during the meeting"},
-    {"Word":"duplicity","Meaning":"someone dishonest and pretends to be truthful while hiding truth","Example":"his duplicity shocked everyone"}
+    {"Word":"Upload and learn","Meaning":"Please upload an Excel file to start learning new words.","Example":"Click the 'Load Excel' button to get started!"}
 ];
 
-let words = [...INITIAL_DATA];
+let fullWordList = [...INITIAL_DATA]; // Holds all loaded words
+let words = [...INITIAL_DATA]; // Holds the currently displayed set (can be a range)
 let currentIndex = 0;
 let isFlipped = false;
 
@@ -41,12 +24,18 @@ const shuffleBtn = document.getElementById('shuffle-btn');
 const excelUpload = document.getElementById('excel-upload');
 const resetBtn = document.getElementById('reset-btn');
 
+// Range Controls
+const rangeFromInput = document.getElementById('range-from');
+const rangeToInput = document.getElementById('range-to');
+const loadRangeBtn = document.getElementById('load-range-btn');
+
 function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
     }
-    return array;
+    return newArray;
 }
 
 function updateCard() {
@@ -54,6 +43,8 @@ function updateCard() {
         wordDisplay.textContent = "No Words Loaded";
         meaningDisplay.textContent = "";
         exampleDisplay.textContent = "";
+        counter.textContent = "0 / 0";
+        progressFill.style.width = "0%";
         return;
     }
 
@@ -112,18 +103,41 @@ function handleFileUpload(event) {
         const json = XLSX.utils.sheet_to_json(worksheet);
         
         if (json.length > 0) {
+            fullWordList = json;
             words = shuffle(json);
             // Save to local storage for persistence
             localStorage.setItem('wordwise_data', JSON.stringify(json));
             
             currentIndex = 0;
             updateCard();
-            alert(`Loaded ${json.length} words successfully and saved to local storage!`);
+            alert(`Loaded ${json.length} words successfully!`);
         } else {
             alert("No words found in the Excel file.");
         }
     };
     reader.readAsArrayBuffer(file);
+}
+
+function loadRange() {
+    const from = parseInt(rangeFromInput.value);
+    const to = parseInt(rangeToInput.value);
+
+    if (isNaN(from) || isNaN(to)) {
+        alert("Please enter both From and To numbers.");
+        return;
+    }
+
+    if (from < 1 || to > fullWordList.length || from > to) {
+        alert(`Please enter a valid range between 1 and ${fullWordList.length}.`);
+        return;
+    }
+
+    // Slice is 0-indexed, users usually think 1-indexed
+    const subset = fullWordList.slice(from - 1, to);
+    words = shuffle(subset);
+    currentIndex = 0;
+    updateCard();
+    alert(`Loaded ${words.length} words from range ${from}-${to} in jumbled order!`);
 }
 
 // Event Listeners
@@ -132,16 +146,18 @@ card.addEventListener('click', toggleFlip);
 nextBtn.addEventListener('click', nextWord);
 prevBtn.addEventListener('click', prevWord);
 shuffleBtn.addEventListener('click', () => {
-    words = shuffle([...words]);
+    words = shuffle(words);
     currentIndex = 0;
     updateCard();
 });
 excelUpload.addEventListener('change', handleFileUpload);
+loadRangeBtn.addEventListener('click', loadRange);
+
 resetBtn.addEventListener('click', () => {
-    if (confirm("Are you sure you want to reset to default words and clear saved data?")) {
+    if (confirm("Are you sure you want to clear saved data and reset?")) {
         localStorage.removeItem('wordwise_data');
+        fullWordList = [...INITIAL_DATA];
         words = [...INITIAL_DATA];
-        words = shuffle([...words]);
         currentIndex = 0;
         updateCard();
     }
@@ -164,16 +180,19 @@ function init() {
     const savedData = localStorage.getItem('wordwise_data');
     if (savedData) {
         try {
-            words = JSON.parse(savedData);
+            const parsed = JSON.parse(savedData);
+            fullWordList = parsed;
+            words = shuffle(parsed);
             console.log('Loaded words from localStorage');
         } catch (e) {
             console.error('Failed to parse saved data', e);
+            fullWordList = [...INITIAL_DATA];
             words = [...INITIAL_DATA];
         }
     } else {
+        fullWordList = [...INITIAL_DATA];
         words = [...INITIAL_DATA];
     }
-    words = shuffle([...words]);
     updateCard();
 }
 
