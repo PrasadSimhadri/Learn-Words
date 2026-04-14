@@ -2,7 +2,7 @@ import * as XLSX from 'xlsx';
 
 // Initial data for welcome state
 const INITIAL_DATA = [
-    {"Word":"Upload and learn","Meaning":"Please upload an Excel file to start learning new words.","Example":"Click the 'Load Excel' button to get started!"}
+    {"Word":"Upload and learn","Meaning":"Please upload an Excel file to start learning new words.","Example":"Click the 'Load Excel' button to get started!", "Synonyms": "Progress, Growth, Mastery"}
 ];
 
 let fullWordList = [...INITIAL_DATA]; // Holds all loaded words
@@ -15,6 +15,8 @@ const card = document.getElementById('card');
 const wordDisplay = document.getElementById('word-display');
 const meaningDisplay = document.getElementById('meaning-display');
 const exampleDisplay = document.getElementById('example-display');
+const synonymsDisplay = document.getElementById('synonyms-display');
+const synonymsGroup = document.getElementById('synonyms-group');
 const flipBtn = document.getElementById('flip-btn');
 const nextBtn = document.getElementById('next-btn');
 const prevBtn = document.getElementById('prev-btn');
@@ -43,6 +45,7 @@ function updateCard() {
         wordDisplay.textContent = "No Words Loaded";
         meaningDisplay.textContent = "";
         exampleDisplay.textContent = "";
+        synonymsDisplay.textContent = "";
         counter.textContent = "0 / 0";
         progressFill.style.width = "0%";
         return;
@@ -55,8 +58,13 @@ function updateCard() {
     
     setTimeout(() => {
         wordDisplay.textContent = currentWord.Word || "N/A";
-        meaningDisplay.textContent = currentWord.Meaning || "No meaning provided.";
+        const meaningText = currentWord.Meaning || "No meaning provided.";
+        meaningDisplay.textContent = meaningText;
         exampleDisplay.textContent = currentWord.Example || "";
+        
+        const synonyms = currentWord.Synonyms || "";
+        synonymsDisplay.textContent = synonyms;
+        synonymsGroup.style.display = synonyms ? 'block' : 'none';
         
         // Update stats
         counter.textContent = `${currentIndex + 1} / ${words.length}`;

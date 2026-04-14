@@ -261,6 +261,14 @@ main {
   padding-left: 1rem;
 }
 
+.synonyms-text {
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  border-left: 2px solid var(--secondary-glow);
+  padding-left: 1rem;
+}
+
 .hint {
   font-size: 0.8rem;
   color: var(--text-muted);
