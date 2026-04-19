@@ -7,6 +7,7 @@ const INITIAL_DATA = [
 
 let fullWordList = [...INITIAL_DATA]; // Holds all loaded words
 let words = [...INITIAL_DATA]; // Holds the currently displayed set (can be a range)
+let currentWorkbook = null; // Store workbook to switch sheets without re-uploading
 let currentIndex = 0;
 let isFlipped = false;
 
@@ -30,6 +31,8 @@ const resetBtn = document.getElementById('reset-btn');
 const rangeFromInput = document.getElementById('range-from');
 const rangeToInput = document.getElementById('range-to');
 const loadRangeBtn = document.getElementById('load-range-btn');
+const sheetSelectorGroup = document.getElementById('sheet-selector-group');
+const sheetSelect = document.getElementById('sheet-select');
 
 function shuffle(array) {
     const newArray = [...array];
@@ -105,25 +108,48 @@ function handleFileUpload(event) {
     const reader = new FileReader();
     reader.onload = (e) => {
         const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
-        const json = XLSX.utils.sheet_to_json(worksheet);
+        currentWorkbook = XLSX.read(data, { type: 'array' });
         
-        if (json.length > 0) {
-            fullWordList = json;
-            words = shuffle(json);
-            // Save to local storage for persistence
-            localStorage.setItem('wordwise_data', JSON.stringify(json));
-            
-            currentIndex = 0;
-            updateCard();
-            alert(`Loaded ${json.length} words successfully!`);
-        } else {
-            alert("No words found in the Excel file.");
-        }
+        // Populate sheet selector
+        sheetSelect.innerHTML = "";
+        currentWorkbook.SheetNames.forEach(name => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            sheetSelect.appendChild(option);
+        });
+        
+        sheetSelectorGroup.style.display = 'block';
+        
+        // Load first sheet by default
+        loadSheetData(currentWorkbook.SheetNames[0]);
     };
     reader.readAsArrayBuffer(file);
+}
+
+function loadSheetData(sheetName) {
+    if (!currentWorkbook) return;
+    
+    const worksheet = currentWorkbook.Sheets[sheetName];
+    const json = XLSX.utils.sheet_to_json(worksheet);
+    
+    if (json.length > 0) {
+        fullWordList = json;
+        words = shuffle(json);
+        // Save to local storage for persistence
+        localStorage.setItem('wordwise_data', JSON.stringify(json));
+        
+        currentIndex = 0;
+        updateCard();
+        alert(`Loaded ${json.length} words from sheet "${sheetName}" successfully!`);
+    } else {
+        alert(`No words found in sheet "${sheetName}".`);
+    }
+}
+
+function handleSheetChange(event) {
+    const selectedSheet = event.target.value;
+    loadSheetData(selectedSheet);
 }
 
 function loadRange() {
@@ -159,6 +185,7 @@ shuffleBtn.addEventListener('click', () => {
     updateCard();
 });
 excelUpload.addEventListener('change', handleFileUpload);
+sheetSelect.addEventListener('change', handleSheetChange);
 loadRangeBtn.addEventListener('click', loadRange);
 
 resetBtn.addEventListener('click', () => {
@@ -167,6 +194,7 @@ resetBtn.addEventListener('click', () => {
         fullWordList = [...INITIAL_DATA];
         words = [...INITIAL_DATA];
         currentIndex = 0;
+        sheetSelectorGroup.style.display = 'none';
         updateCard();
     }
 });
