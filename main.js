@@ -33,6 +33,8 @@ const rangeToInput = document.getElementById('range-to');
 const loadRangeBtn = document.getElementById('load-range-btn');
 const sheetSelectorGroup = document.getElementById('sheet-selector-group');
 const sheetSelect = document.getElementById('sheet-select');
+const bookmarkBtnFront = document.getElementById('bookmark-btn-front');
+const bookmarkBtnBack = document.getElementById('bookmark-btn-back');
 
 function shuffle(array) {
     const newArray = [...array];
@@ -74,6 +76,11 @@ function updateCard() {
         const progress = ((currentIndex + 1) / words.length) * 100;
         progressFill.style.width = `${progress}%`;
         
+        // Update bookmark buttons
+        const isBookmarked = currentWord.isBookmarked || false;
+        bookmarkBtnFront.classList.toggle('active', isBookmarked);
+        bookmarkBtnBack.classList.toggle('active', isBookmarked);
+        
         card.classList.remove('fading');
     }, 200);
 
@@ -98,6 +105,51 @@ function nextWord() {
 function prevWord() {
     if (words.length === 0) return;
     currentIndex = (currentIndex - 1 + words.length) % words.length;
+    updateCard();
+}
+
+function bookmarkWord(event) {
+    if (event) event.stopPropagation(); // Prevent card flip
+    if (words.length === 0) return;
+
+    const currentWord = words[currentIndex];
+    
+    // Find the word in fullWordList to update its state permanently
+    const wordInFullList = fullWordList.find(w => w.Word === currentWord.Word);
+    
+    // Toggle state
+    const newBookmarkState = !currentWord.isBookmarked;
+    currentWord.isBookmarked = newBookmarkState;
+    if (wordInFullList) wordInFullList.isBookmarked = newBookmarkState;
+
+    if (newBookmarkState) {
+        // Shown again after at random point of time along of other words left
+        // "Words left" are from currentIndex + 1 to end
+        const remainingCount = words.length - (currentIndex + 1);
+        
+        if (remainingCount > 0) {
+            // Insert at random position among remaining
+            const offset = Math.floor(Math.random() * remainingCount) + 1;
+            const targetIndex = currentIndex + offset;
+            
+            // Insert a copy at the target index
+            words.splice(targetIndex, 0, { ...currentWord });
+            console.log(`Word "${currentWord.Word}" bookmarked. Re-inserted at index ${targetIndex}.`);
+        } else {
+            // If it's the last word, insert it somewhere earlier or loop it back
+            // For now, let's just push it to the end so it loops back eventually
+            words.push({ ...currentWord });
+            console.log(`Word "${currentWord.Word}" bookmarked. Added to the end (looping).`);
+        }
+    } else {
+        // If un-bookmarking, we could technically remove future instances
+        // but for simplicity and following the specific request "bookmark... and it should be shown again",
+        // we'll just keep the logic focused on the "shown again" part.
+    }
+
+    // Save state to local storage
+    localStorage.setItem('wordwise_data', JSON.stringify(fullWordList));
+    
     updateCard();
 }
 
@@ -187,6 +239,8 @@ shuffleBtn.addEventListener('click', () => {
 excelUpload.addEventListener('change', handleFileUpload);
 sheetSelect.addEventListener('change', handleSheetChange);
 loadRangeBtn.addEventListener('click', loadRange);
+bookmarkBtnFront.addEventListener('click', bookmarkWord);
+bookmarkBtnBack.addEventListener('click', bookmarkWord);
 
 resetBtn.addEventListener('click', () => {
     if (confirm("Are you sure you want to clear saved data and reset?")) {
